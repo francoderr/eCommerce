@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Furniture Store</title>
+    <style>
+      :root {
+        --theme-color: #e2b659;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+      }
+
+      header {
+        background-color: var(--theme-color);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 10px;
+      }
+
+      .headerDiv {
+        display: flex;
+      }
+
+      #toggleSidebar {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .container {
+        display: flex;
+        height: calc(100vh - 100px); /* Adjusted for header height */
+      }
+
+      .sidebar {
+        width: 200px;
+        background-color: #333;
+        padding: 20px;
+        height: 100vh;
+        position: fixed;
+        top: 100px; /* Start below the header */
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .sidebar ul li {
+        margin: 15px 0;
+      }
+
+      .sidebar ul li a {
+        text-decoration: none;
+        color: white;
+      }
+
+      main {
+        flex: 1;
+        margin-left: 250px; /* Same as sidebar width */
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(-100%);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+          position: absolute;
+        }
+
+        .sidebar.collapsed {
+          transform: translateX(0);
+        }
+
+        main {
+          margin-left: 0;
+        }
+      }
+
+      .prods {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .product {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        transition: transform 0.2s;
+      }
+
+      .product:hover {
+        transform: translateY(-10px);
+        cursor: pointer;
+      }
+
+      .product img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+
+      .product-details {
+        padding: 15px;
+      }
+
+      .product-details h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+      }
+
+      .product-details p {
+        margin: 5px 0;
+        font-size: 14px;
+      }
+
+      .product-price {
+        color: var(--theme-color);
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .add-to-cart {
+        background-color: var(--theme-color);
+        color: white;
+        border: none;
+        padding: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      .add-to-cart:hover {
+        background-color: #d4a056;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="headerDiv">
+        <button id="toggleSidebar">☰</button>
+        <h1>Furniture Store</h1>
+      </div>
+      <a href="/logout"><button>Logout</button></a>
+    </header>
+    <div class="container">
+      <nav id="sidebar" class="sidebar">
+        <ul>
+          <li><a href="/dashboard">Home</a></li>
+          <li><a href="/myCart">My Cart</a></li>
+          <li><a href="/dashboard">Checkout</a></li>
+          <li><a href="/users">admin</a></li>
+        </ul>
+      </nav>
+      <main>
+        <div class="prods"></div>
+      </main>
+    </div>
+    <script>
+      document
+        .getElementById("toggleSidebar")
+        .addEventListener("click", function () {
+          document.getElementById("sidebar").classList.toggle("collapsed");
+        });
+
+      async function fetchProducts() {
+        try {
+          const response = await fetch("http://localhost:3000/listProducts");
+          const data = await response.json();
+
+          if (data.Status === "Success") {
+            displayProducts(data.products);
+          } else {
+            console.error("Failed to retrieve products");
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        }
+      }
+
+      function displayProducts(products) {
+        const productsContainer = document.querySelector(".prods");
+        productsContainer.innerHTML = ""; // Clear any existing content
+
+        products.forEach((product) => {
+          const productElement = document.createElement("div");
+          productElement.classList.add("product");
+
+          const productImage = document.createElement("img");
+          productImage.src = `${product.image}`;
+          productImage.alt = product.title;
+
+          const productDetails = document.createElement("div");
+          productDetails.classList.add("product-details");
+
+          const productTitle = document.createElement("h3");
+          productTitle.textContent = product.title;
+
+          const productDescription = document.createElement("p");
+          productDescription.textContent = product.description;
+
+          const productPrice = document.createElement("p");
+          productPrice.classList.add("product-price");
+          productPrice.textContent = `ksh ${product.price}`;
+
+          const addToCartButton = document.createElement("button");
+          addToCartButton.classList.add("add-to-cart");
+          addToCartButton.textContent = "Add to Cart";
+          addToCartButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            addToCart(product._id);
+          });
+
+          productDetails.appendChild(productTitle);
+          productDetails.appendChild(productDescription);
+          productDetails.appendChild(productPrice);
+          productDetails.appendChild(addToCartButton);
+
+          productElement.appendChild(productImage);
+          productElement.appendChild(productDetails);
+
+          productsContainer.appendChild(productElement);
+        });
+      }
+
+      function addToCart(productId) {
+        fetch(`http://localhost:3000/addToCart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ productId: productId }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.Status === "Success") {
+              alert("Product added to cart successfully!");
+            } else {
+              console.error("Failed to add product to cart");
+              console.log(data)
+            }
+          })
+          .catch((error) => {
+            console.error("Error adding product to cart:", error);
+          });
+      }
+
+      fetchProducts();
+    </script>
+  </body>
+</html>
