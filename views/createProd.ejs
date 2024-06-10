@@ -118,6 +118,20 @@
           margin: 20px;
         }
       }
+      .logout-button {
+        background-color: black;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+      }
+
+      .logout-button:hover {
+        background-color: #e5533c;
+      }
     </style>
   </head>
   <body>
@@ -126,7 +140,7 @@
         <button id="toggleSidebar">☰</button>
         <h1>Furniture Store</h1>
       </div>
-      <a href="/logout"><button>Logout</button></a>
+      <a href="/logout"><button class="logout-button">Logout</button></a>
     </header>
     <div class="container">
       <nav id="sidebar" class="sidebar">

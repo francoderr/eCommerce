@@ -117,7 +117,8 @@ export const removeFromCart = async (req, res) => {
 };
 
 export const makeOrder = async (req, res) => {
-  const userId = req.body.userId;
+  let userId = req.user._id;
+  userId = userId.toString();
 
   if (!userId) {
     return res.status(400).send("userId required to make order");

@@ -90,92 +90,53 @@
         }
       }
 
-      .items {
+      .pay {
         display: flex;
         flex-direction: column;
         gap: 20px;
+        max-width: 400px;
+        margin: 0 auto;
       }
 
-      .item {
-        display: flex;
+      .pay input {
+        padding: 10px;
+        font-size: 16px;
         border: 1px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #fff;
-        transition: transform 0.2s;
-        padding: 10px;
-      }
-
-      .item:hover {
-        transform: translateY(-10px);
-      }
-
-      .item img {
-        width: 150px;
-        height: 150px;
-        object-fit: cover;
-        flex-shrink: 0;
-      }
-
-      .item-details {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 0 15px;
-        flex-grow: 1;
-      }
-
-      .item-details h3 {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-      }
-
-      .item-details p {
-        margin: 5px 0;
-        font-size: 14px;
-      }
-
-      .item-price {
-        color: var(--theme-color);
-        font-weight: bold;
-        margin-top: 10px;
-      }
-
-      .remove-btn {
-        background-color: #ff6347;
-        color: white;
-        border: none;
-        padding: 10px;
-        margin-top: 10px;
-        cursor: pointer;
         border-radius: 4px;
-        align-self: flex-start;
       }
 
-      .remove-btn:hover {
-        background-color: #e5533c;
-      }
-
-      .cart-summary {
-        margin-top: 20px;
-        border-top: 1px solid #ddd;
-        padding-top: 20px;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-      }
-
-      .order-btn {
+      .pay button {
         background-color: var(--theme-color);
         color: white;
         border: none;
         padding: 15px;
         cursor: pointer;
         border-radius: 4px;
+        font-size: 16px;
       }
 
-      .order-btn:hover {
+      .pay button:hover {
         background-color: #d4a056;
+      }
+
+      .pay-summary {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+      .logout-button {
+        background-color: black;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+      }
+
+      .logout-button:hover {
+        background-color: #e5533c;
       }
     </style>
   </head>
@@ -185,19 +146,22 @@
         <button id="toggleSidebar">☰</button>
         <h1>Furniture Store</h1>
       </div>
-      <a href="/logout"><button>Logout</button></a>
+      <a href="/logout"><button class="logout-button">Logout</button></a>
     </header>
     <div class="container">
       <nav id="sidebar" class="sidebar">
         <ul>
           <li><a href="/dashboard">Home</a></li>
           <li><a href="/myCart">My Cart</a></li>
-          <li><a href="/checkout">Checkout</a></li>
           <li><a href="/users">admin</a></li>
         </ul>
       </nav>
       <main>
-        <div class="pay"></div>
+        <div class="pay">
+          <div class="pay-summary" id="total-price"></div>
+          <input type="text" id="phone" placeholder="Enter your phone number" />
+          <button id="payBtn">Pay</button>
+        </div>
       </main>
     </div>
     <script>
@@ -207,6 +171,55 @@
           document.getElementById("sidebar").classList.toggle("collapsed");
         });
 
+      function getTotalPriceFromParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("totalPrice");
+      }
+
+      function displayTotalPrice() {
+        const totalPrice = getTotalPriceFromParams();
+        document.getElementById(
+          "total-price"
+        ).textContent = `Total Price: $${totalPrice}`;
+      }
+
+      document
+        .getElementById("payBtn")
+        .addEventListener("click", async function () {
+          const phone = document.getElementById("phone").value;
+          const totalPrice = getTotalPriceFromParams();
+
+          if (!phone) {
+            alert("Please enter your phone number.");
+            return;
+          }
+
+          try {
+            const response = await fetch("http://localhost:3000/stkPush", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                phone: phone,
+                amount: totalPrice,
+              }),
+            });
+
+            if (response.ok) {
+              alert("Payment request sent successfully.");
+              // window.location.href = `/checkout?totalPrice=${totalPrice}`;
+            } else {
+              alert("Failed to process payment.");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while processing the payment.");
+          }
+        });
+
+      // Display the total price when the page loads
+      displayTotalPrice();
     </script>
   </body>
 </html>

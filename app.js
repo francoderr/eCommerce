@@ -94,7 +94,7 @@ app.get("/myCart", isAuthenticated, (req, res) => {
   res.render("myCart", { user: req.user });
 });
 
-app.get("/checkout/:price?", isAuthenticated, (req, res) => {
+app.get("/checkout/:totalPrice?", isAuthenticated, (req, res) => {
   res.render("checkout", { user: req.user });
 });
 
